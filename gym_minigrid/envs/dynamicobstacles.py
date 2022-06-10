@@ -16,6 +16,8 @@ class DynamicObstaclesEnv(MiniGridEnv):
     ):
         self.agent_start_pos = agent_start_pos
         self.agent_start_dir = agent_start_dir
+        self.goal = (0,0)
+        self.max_steps = 11
 
         # Reduce obstacles if there are too many
         if n_obstacles <= size/2 + 1:
@@ -76,6 +78,7 @@ class DynamicObstaclesEnv(MiniGridEnv):
                 self.grid.set(*old_pos, None)
             except:
                 pass
+         
 
         # Update the agent's position/direction
         obs, reward, done, info = MiniGridEnv.step(self, action)
@@ -84,6 +87,12 @@ class DynamicObstaclesEnv(MiniGridEnv):
         if action == self.actions.forward and not_clear:
             reward = -1
             done = True
+            return obs, reward, done, info
+        
+        cell = self.grid.get(*(self.front_pos))
+        if action == self.actions.forward and cell != None and cell.type == 'goal':
+            done = True 
+            reward = 1
             return obs, reward, done, info
 
         return obs, reward, done, info

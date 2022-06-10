@@ -19,6 +19,7 @@ class ProbGridEnv(MiniGridEnv):
         self.agent_start_dir = agent_start_dir
         self.dio = Dio()
         self.goal = (0,0)
+        self.weight = 1
 
         # Reduce obstacles if there are too many
         if n_obstacles <= size/2 + 1:
@@ -92,15 +93,20 @@ class ProbGridEnv(MiniGridEnv):
 
         self.dio.updateWorld(self.agent_pos, self.agent_dir, posobs, self.goal)
 
-        ## UPDATE OF THE REWARD GIVEN CALL TO DIO
-        ## Normalization after addition of feedback necessary
-        reward = (reward + self.dio.getFeedback())/2
-
         # If the agent tried to walk over an obstacle or wall
         if action == self.actions.forward and not_clear:
             reward = -1
             done = True
             return obs, reward, done, info
+
+        if done:
+            reward = 1 
+        else:
+            reward = -0.01
+
+        ## UPDATE OF THE REWARD GIVEN CALL TO DIO
+        ## Normalization after addition of feedback necessary
+        reward = (1-self.weight) * reward + self.weight * self.dio.getFeedback()
 
         return obs, reward, done, info
 
