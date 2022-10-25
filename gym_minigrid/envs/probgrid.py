@@ -10,8 +10,6 @@ import csv
 import threading
 
 
-lock = threading.Lock()
-
 ## Extension of DynamicObstacles Environment.
 class ProbGridEnv(MiniGridEnv):
     def __init__(
@@ -162,36 +160,28 @@ class ProbGridEnv(MiniGridEnv):
         if (self.steps >= config.config.max_steps):
             reward = config.config.reward_exhaust
             done = True
-            lock.acquire()
-            config.increase_exhaust()
-            lock.release()
+            info["termination"] = 0
             self.steps = 0
 
         # If the agent tried to walk over an obstacle or wall
         if action == self.actions.forward and not_clear:
             reward = config.config.reward_fail
             done = True
-            lock.acquire()
-            config.increase_failure()
-            lock.release()
+            info["termination"] = -1
             self.steps = 0
 
         if done and self.steps != 0:
             reward = config.config.reward_succ 
+            info["termination"] = 1
             self.steps = 0
-            lock.acquire()
-            config.increase_success()
-            lock.release()
+
         elif not done:
             reward = config.config.reward_life
         
-        dio_feedback = self.dio.getFeedback()
-        #dio_feedback = 0    
+        dio_feedback = self.dio.getFeedback() 
     
         ## UPDATE OF THE REWARD GIVEN CALL TO DIO
-        ## Normalization after addition of feedback necessary
         reward = reward + dio_feedback
-
 
         return obs, reward, done, info
 
